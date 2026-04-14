@@ -24,7 +24,6 @@ public class SpeechToTextService
 			
 			 RecognitionConfig config = RecognitionConfig.newBuilder()
 	                    .setEncoding(RecognitionConfig.AudioEncoding.OGG_OPUS)
-	            
 	                    .setLanguageCode("en-US")
 	                    .build();
 			 RecognizeResponse response= speechClient.recognize(config,audio);

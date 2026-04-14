@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Voice Note to Text</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+
+        p.subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .status {
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #059669;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            padding: 12px 18px;
+            font-size: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #startBtn {
+            background: #22c55e;
+            color: white;
+        }
+
+        #startBtn:hover {
+            background: #16a34a;
+        }
+
+        #stopBtn {
+            background: #ef4444;
+            color: white;
+        }
+
+        #stopBtn:disabled {
+            background: #fca5a5;
+            cursor: not-allowed;
+        }
+
+        .transcription-box {
+            text-align: left;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 80px;
+            font-size: 14px;
+            color: #111827;
+            white-space: pre-wrap;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎤 Voice Note to Text</h2>
+    <p class="subtitle">Convert your speech into text instantly</p>
+
+    <div class="status" id="status">Ready to record</div>
+
+    <div class="buttons">
+        <button id="startBtn">▶ Start</button>
+        <button id="stopBtn" disabled>⏹ Stop</button>
+    </div>
+
+    <strong>Transcription Output</strong>
+    <div class="transcription-box" id="result">
+        Your converted text will appear here...
+    </div>
+
+    <footer>
+        Powered by Spring Boot & Google Cloud Speech-to-Text
+    </footer>
+</div>
+
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const result = document.getElementById("result");
+    const status = document.getElementById("status");
+
+    startBtn.onclick = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.start();
+
+            status.innerText = "🎙 Recording...";
+            status.style.color = "#dc2626";
+
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+
+            console.log("Recording started");
+        } catch (err) {
+            alert("Microphone permission denied!");
+            console.error(err);
+        }
+    };
+
+    stopBtn.onclick = () => {
+        mediaRecorder.stop();
+
+        mediaRecorder.onstop = async () => {
+            status.innerText = "⏳ Converting...";
+            status.style.color = "#2563eb";
+
+            const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+            const formData = new FormData();
+            formData.append("audio", audioBlob, "voice.webm");
+
+            const response = await fetch("/api/record", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            result.innerText = data.transcription || "No speech detected";
+
+            status.innerText = "✅ Conversion completed";
+            status.style.color = "#059669";
+
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+
+            console.log("Recording stopped");
+        };
+    };
+</script>
+
+</body>
+</html>
