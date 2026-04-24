@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voice-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: voice
+  template:
+    metadata:
+      labels:
+        app: voice
+    spec:
+      containers:
+        - name: voice-app
+          image: satyareddy9/voice-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"

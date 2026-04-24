@@ -22,12 +22,13 @@ public class SpeechToTextService
 			RecognitionAudio  audio =RecognitionAudio.newBuilder()
 					.setContent(ByteString.copyFrom(audioBytes)).build();
 			
-			 RecognitionConfig config = RecognitionConfig.newBuilder()
-	                    .setEncoding(RecognitionConfig.AudioEncoding.OGG_OPUS)
-	                    .setLanguageCode("en-US")
-	                    .build();
+			RecognitionConfig config = RecognitionConfig.newBuilder()
+       								 	.setEncoding(RecognitionConfig.AudioEncoding.WEBM_OPUS)
+       								 	.setSampleRateHertz(48000)
+        								.setLanguageCode("en-US")
+        								.build();
 			 RecognizeResponse response= speechClient.recognize(config,audio);
-			 
+			 System.out.println("Results size: " + response.getResultsCount());
 			 StringBuilder resultText =new StringBuilder();
 			 for(SpeechRecognitionResult result: response.getResultsList())
 			 {
